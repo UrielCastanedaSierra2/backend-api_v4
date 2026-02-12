@@ -15,7 +15,7 @@ import productosDbRoutes from './routes/productos.db.routes.js';
 
 const app = express();
 
-// Habilita CORS para permitir que el Front consuma la API
+// Habilita CORS para permitir que el Front consuma las APIs
 app.use(cors());            // ← Añade cabeceras CORS automáticamente
 app.use(express.json());    // ← Permite recibir JSON en el body (para futuros POST)
 

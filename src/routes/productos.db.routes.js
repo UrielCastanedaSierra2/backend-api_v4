@@ -6,15 +6,43 @@ const router = Router();
 // GET /api/productos-db
 router.get('/', async (req, res) => {
   try {
+    // ---- Aquí se lanzael Query con las instrucciones SQL
+    //      que permiten obtener el listado de todos los productos
     const [rows] = await pool.query(
       'SELECT nombre, foto, votacion FROM productos'
     );
 
+    // ----  Emite la respuesta convirtiendo y entregando los datos en formato json
     res.json(rows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al consultar MySQL Railway' });
   }
 });
+
+
+// ===============================
+// PUT /api/productos-db/votar/:nombre
+// Incrementa en +1 la votación
+// ===============================
+router.put('/votar/:nombre', async (req, res) => {
+  const { nombre } = req.params
+
+  try {
+    // ====== CASO BD REAL ======
+  
+      await pool.query(
+        'UPDATE productos SET votacion = votacion + 1 WHERE nombre = ?',
+        [nombre]
+      )
+
+      return res.json({ ok: true })
+
+
+  } catch (error) {
+    console.error('Error al votar:', error)
+    res.status(500).json({ ok: false })
+  }
+})
 
 export default router;
