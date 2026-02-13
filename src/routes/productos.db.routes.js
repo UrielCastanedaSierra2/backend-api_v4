@@ -29,8 +29,7 @@ router.put('/votar/:nombre', async (req, res) => {
   const { nombre } = req.params
 
   try {
-    // ====== CASO BD REAL ======
-  
+      // ====== Lanza el SQL hacia el servidor de la BD ======
       await pool.query(
         'UPDATE productos SET votacion = votacion + 1 WHERE nombre = ?',
         [nombre]

@@ -6,10 +6,8 @@ import { Router } from 'express';
 
 const router = Router();
 
-// GET /api/productos/
-// 👉 Devuelve un listado estático de productos (JSON)
-router.get('/', (req, res) => {
-  res.json([
+// ====== Tabla SIMULADA de productos  (Para pruebas sin acceso a Base de datos)
+const productosTablaSimulada = [
     { nombre: 'Revitalift',     foto: 'revitalift.avif',  votacion: 120 },
     { nombre: 'Elseve',         foto: 'elseve.jpg',       votacion: 98  },
     { nombre: 'Infallible',     foto: 'infallible.jfif',  votacion: 150 },
@@ -20,7 +18,38 @@ router.get('/', (req, res) => {
     { nombre: 'Age Perfect',    foto: 'ageperfect.webp',  votacion: 72  },
     { nombre: 'Casting Crème',  foto: 'castingcreme.webp',votacion: 90  },
     { nombre: 'Studio Line',    foto: 'studioline.jpg',   votacion: 30  }
-  ]);
+  ];
+
+// GET /api/productos/
+// 👉 Devuelve un listado estático de productosTablaSimulada en formato (JSON)
+router.get('/', (req, res) => {
+  res.json(productosTablaSimulada);
+});
+
+
+// ===============================
+// PUT /api/productos/votar/:nombre
+// Incrementa en +1 la votación
+// ===============================
+router.put('/votar/:nombre', async (req, res) => {
+  const { nombre } = req.params
+
+  // ------  Actualiza los datos de la Tabla LOCAL ------
+  try {
+    const producto = productosTablaSimulada.find(p => p.nombre === nombre)
+
+    if (!producto)
+      return res.status(404).json({ ok: false, mensaje: 'Producto no encontrado' })
+
+    // --- incrementa en UNO el valor de votos recibidos para el producto seleccionado
+    producto.votacion++
+
+    res.json({ ok: true })
+
+  } catch (error) {
+    console.error('Error al votar:', error)
+    res.status(500).json({ ok: false })
+  }
 });
 
 export default router;
