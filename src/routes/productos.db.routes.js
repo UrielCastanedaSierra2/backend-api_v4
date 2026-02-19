@@ -3,6 +3,13 @@ import { pool } from '../config/db.js';
 
 const router = Router();
 
+/**
+ * Base de este router (se monta en /api/productos-db desde index.js)
+ * Endpoints:
+ *  - GET    /              -> Lista todos los productos
+ *  - PUT    /votar/:nombre -> Incrementa en +1 la votación del producto {nombre}
+ */
+
 // GET /api/productos-db
 router.get('/', async (req, res) => {
   try {
@@ -13,6 +20,7 @@ router.get('/', async (req, res) => {
     );
 
     // ----  Emite la respuesta convirtiendo y entregando los datos en formato json
+    // Entrega JSON plano (ideal para Power Apps)
     res.json(rows);
   } catch (error) {
     console.error(error);

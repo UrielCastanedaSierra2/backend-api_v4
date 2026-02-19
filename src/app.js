@@ -1,5 +1,5 @@
 // =================================
-// =    PRIMER SERVIDOR EXPRESS    =
+// =     SERVIDOR EXPRESS  app.js  =
 // =================================
 
 import express from 'express';
@@ -8,31 +8,88 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Para conectar las rutas al servidor
+// 👁️‍🗨️ Conservamos EXACTAMENTE imports de la versión funcional de API a productos
 import productosRoutes from './routes/productos.routes.js';
 import productosDbRoutes from './routes/productos.db.routes.js';
 
+// 👇 NUEVOS IMPORTS 
+// tener en cuenta la unicación real del middleware..  ajustar al path correcto:
+import apiKey from './middleware/apiKey.js';
+
+// versión funcional de API a cliente_usuario
+import usersRouter from './routes/users.routes.js';
+
+// versión funcional de API para registrar y consultar votos
+import votosRouter from './routes/votos.routes.js';  
+
 const app = express();
 
-// Habilita CORS para permitir que el Front consuma las APIs
-app.use(cors());            // ← Añade cabeceras CORS automáticamente
-app.use(express.json());    // ← Permite recibir JSON en el body (para futuros POST)
+// ───────────────────────────────────────────
+// 1) Middlewares base (antes de las rutas)
+// ───────────────────────────────────────────
 
+// Configuración CORS desde variables de entorno:
+// - CORS_ORIGINS: lista separada por coma. 
+//   Ej: http://localhost:5173,https://apps.powerapps.com
 
-// ---- SERVIR ARCHIVOS ESTÁTICOS ----
-// Esto permite acceder a /imagenes/productos/archivo.jpg desde el navegador.
-// Ej: http://localhost:3000/imagenes/productos/elseve.jpg
+//   Si no está definida, abrir a '*'.
+const rawOrigins = process.env.CORS_ORIGINS || '*';
+const allowedOrigins =
+   (rawOrigins === '*')
+      ? '*'
+      : rawOrigins.split(',').map((o) => o.trim()).filter(Boolean);
+
+app.use(
+   cors({
+      origin: allowedOrigins, // 👉 Cambia a lista blanca si quieres restringir: ['http://localhost:5173', ...]
+      methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+      allowedHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
+      credentials: false, // poner true en caso de manejar cookies/sesiones con front
+   })
+);
+
+app.use(express.json());                           // ← Body JSON
+app.use(express.urlencoded({ extended: true }));   // ← Formularios (opcional)
+
+// ───────────────────────────────────────────
+// 2) Servir archivos estáticos (se conserva definición funcional - productos)
+//    Permite acceder a /imagenes/productos/archivo.jpg
+//    Ej: http://localhost:3000/imagenes/productos/elseve.jpg
+// ───────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 app.use(express.static(path.resolve(__dirname, '../public')));
-// -----------------------------------
 
-// Todas las rutas del servidor se conectan en estos prefijos
+// ───────────────────────────────────────────
+// 3) Seguridad básica: API Key para todas las rutas /api/*
+//    (Debe ir ANTES del montaje de rutas /api/...)
+// ───────────────────────────────────────────
+app.use('/api', apiKey);
+
+// ───────────────────────────────────────────
+// 4) Rutas de la aplicación
+// ───────────────────────────────────────────
+
 // Rutas de la API (prefijo: /api/productos)
-app.use('/api/productos', productosRoutes);
+app.use('/api/productos', productosRoutes);     
 
 // Rutas de la API (prefijo: /api/productos-db)
-app.use('/api/productos-db', productosDbRoutes);
+app.use('/api/productos-db', productosDbRoutes); 
 
+// Rutas de la API (prefijo: /api/users)
+app.use('/api/users', usersRouter);             // ← NUEVA: Usuarios (cliente_usuario)
+
+// Rutas de la API de votos (prefijo: /api/votos)
+app.use('/api/votos', votosRouter);             // ← NUEVA: detalle_votos
+
+// ───────────────────────────────────────────
+// 5) Health-check (opcional, útil para monitoreo)
+// retorna  mensaje  de confirmación de  enlace correcta de la API  
+// al invocar la cabecera 
+// ───────────────────────────────────────────
+app.get('/health', (req, res) => {
+  res.json({ ok: true, msg: 'Servidor operativo' });
+});
 
 export default app;
 
@@ -40,17 +97,22 @@ export default app;
 express()
 👉 Crea la app servidor
 
-app.use(cors())
-👉 Permite que otros orígenes (frontend) accedan
-   (Los navegadores respetan estas cabeceras CORS) 
+app.use(cors(...))
+👉 Habilita CORS (configurable: origen, métodos, headers)
 
 app.use(express.json())
-👉 Permite recibir datos JSON en futuras rutas POST/PUT
+👉 Permite recibir datos JSON en rutas POST/PUT
+
+app.use(express.static(...))
+👉 Sirve archivos estáticos desde /public
+
+app.use('/api', apiKey)
+👉 Exige x-api-key en todas las rutas que empiezan con /api/*
 
 app.use('/api/productos', productosRoutes);
 app.use('/api/productos-db', productosDbRoutes);
-👉 Todas las rutas definidas en productos.routes.js 
-   "viven" bajo /api/productos
-👉 Todas las rutas definidas en productos.db.routes.js 
-   "viven" bajo /api/productos   
+👉 Tus rutas de productos quedan intactas
+
+app.use('/api/users', usersRouter);
+👉 Se agregan las rutas de usuarios (tabla cliente_usuario)
 */

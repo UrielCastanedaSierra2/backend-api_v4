@@ -1,0 +1,164 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Backend API (Productos & Usuarios)",
+    "version": "1.0.0",
+    "description": "API para gestionar productos (votación) y usuarios (CRUD). Autenticación opcional con x-api-key."
+  },
+  "servers": [
+    // { "url": "http://localhost:3000" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Healthcheck",
+        "operationId": "health",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/productos-db": {
+      "get": {
+        "summary": "Listar productos",
+        "operationId": "listProducts",
+        "responses": {
+          "200": {
+            "description": "Listado de productos",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }]
+      }
+    },
+    "/api/productos-db/votar/{nombre}": {
+      "put": {
+        "summary": "Votar producto por nombre (+1)",
+        "operationId": "voteProduct",
+        "parameters": [
+          { "in": "path", "name": "nombre", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Votación incrementada", "content": { "application/json": { "schema": { "type": "object", "properties": { "ok": { "type": "boolean" } } } } } },
+          "404": { "description": "Producto no encontrado" }
+        },
+        "security": [{ "ApiKeyAuth": [] }]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "summary": "Listar usuarios",
+        "operationId": "listUsers",
+        "responses": {
+          "200": {
+            "description": "Listado de usuarios",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/User" } } } }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }]
+      },
+      "post": {
+        "summary": "Crear usuario",
+        "operationId": "createUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NewUser" },
+              "examples": { "ejemplo": { "value": { "nombre": "Ana", "correo": "ana@mail.com" } } }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Usuario creado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "400": { "description": "Datos inválidos" },
+          "409": { "description": "Correo duplicado" }
+        },
+        "security": [{ "ApiKeyAuth": [] }]
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "summary": "Obtener usuario por ID",
+        "operationId": "getUser",
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Usuario", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "404": { "description": "No encontrado" }
+        },
+        "security": [{ "ApiKeyAuth": [] }]
+      },
+      "put": {
+        "summary": "Actualizar usuario",
+        "operationId": "updateUser",
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUser" } } } },
+        "responses": {
+          "200": { "description": "Usuario actualizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "400": { "description": "Datos inválidos" },
+          "404": { "description": "No encontrado" }
+        },
+        "security": [{ "ApiKeyAuth": [] }]
+      },
+      "delete": {
+        "summary": "Eliminar usuario",
+        "operationId": "deleteUser",
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "204": { "description": "Eliminado" },
+          "404": { "description": "No encontrado" }
+        },
+        "security": [{ "ApiKeyAuth": [] }]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "properties": {
+          "nombre": { "type": "string" },
+          "foto": { "type": "string" },
+          "votacion": { "type": "integer" }
+        },
+        "required": ["nombre", "votacion"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "nombre": { "type": "string" },
+          "correo": { "type": "string" },
+          "creado_en": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "nombre", "correo", "creado_en"]
+      },
+      "NewUser": {
+        "type": "object",
+        "properties": {
+          "nombre": { "type": "string" },
+          "correo": { "type": "string", "format": "email" }
+        },
+        "required": ["nombre", "correo"]
+      },
+      "UpdateUser": {
+        "type": "object",
+        "properties": {
+          "nombre": { "type": "string" },
+          "correo": { "type": "string", "format": "email" }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Llave para autenticar desde Power Apps."
+      }
+    }
+  },
+  "security": [{ "ApiKeyAuth": [] }]
+}
