@@ -6,7 +6,7 @@
     "description": "API para gestionar productos (votación) y usuarios (CRUD). Autenticación opcional con x-api-key."
   },
   "servers": [
-    // { "url": "http://localhost:3000" }
+     { "url": "https://backend-apiv4-production.up.railway.app" }
   ],
   "paths": {
     "/health": {

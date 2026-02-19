@@ -1,6 +1,13 @@
 // =================================
 // =     SERVIDOR EXPRESS  app.js  =
 // =================================
+function apiKey(req, res, next) {
+  const key = req.header('x-api-key');
+  if (!key || key !== process.env.API_KEY) {
+    return res.status(401).json({ error: 'API key inválida' });
+  }
+  next();
+}
 
 import express from 'express';
 import cors from 'cors';
@@ -14,7 +21,7 @@ import productosDbRoutes from './routes/productos.db.routes.js';
 
 // 👇 NUEVOS IMPORTS 
 // tener en cuenta la unicación real del middleware..  ajustar al path correcto:
-import apiKey from './middleware/apiKey.js';
+//import apiKey from './middleware/apiKey.js';
 
 // versión funcional de API a cliente_usuario
 import usersRouter from './routes/users.routes.js';
