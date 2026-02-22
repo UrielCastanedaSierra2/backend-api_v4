@@ -161,6 +161,7 @@ router.put('/:id_usuario', async (req, res) => {
 // ELIMINAR: DELETE /api/users/:id_usuario
 // ─────────────────────────────────────────────────────────────
 router.delete('/:id_usuario', async (req, res) => {
+    console.log(`✂ intentando BORRAR usuario...`);
     const id = parseInt(req.params.id_usuario, 10);
     if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id_usuario inválido' });
@@ -174,7 +175,7 @@ router.delete('/:id_usuario', async (req, res) => {
         );
 
         if (result.affectedRows === 0) {
-            console.log(`✅🚦 Error 404 Al Borrar usuario...(${ id }) No emcintrado`);
+            console.log(`🚦 Error 404 Al Borrar usuario...(${ id }) No econtrado`);
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
         console.log(`✅ OK DELETE usuario...(${ id })`);
@@ -182,7 +183,7 @@ router.delete('/:id_usuario', async (req, res) => {
 
     } catch (err) {
         console.error(err);
-        console.log(`✅🚦 Error 500 Al Borrar usuario...(${ id }) ${ err }`);
+        console.log(`❌ Error 500 Al Borrar usuario...(${ id }) ${ err }`);
         return res.status(500).json({ error: 'Error eliminando usuario' });
     }
 });
