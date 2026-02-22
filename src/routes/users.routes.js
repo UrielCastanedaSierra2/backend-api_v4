@@ -27,7 +27,9 @@ const router = Router();
     COLLATE=utf8mb4_spanish2_ci
  */
 
-// Helper validación
+// Helper para validación...
+// Verifica que la estructura de sintaxis de una dirección email sea correcta.
+// realiza validación con "EXPRESIONES REGULARES".
 const validarEmail = (correo) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 
 
@@ -41,6 +43,7 @@ router.get('/', async (_req, res) => {
             FROM cliente_usuario
             ORDER BY id_usuario DESC`
         );
+        console.log(`✅ OK consulta usuarios...`);        
         return res.json(rows);
     } catch (err) {
         console.error(err);
@@ -66,6 +69,7 @@ router.get('/:id_usuario', async (req, res) => {
             [id]
         );
         if (rows.length === 0) return res.status(404).json({ error: 'usuario No encontrado' });
+        console.log(`✅ OK consulta Usuario ...(${ id })`);        
         return res.json(rows[0]);
     } catch (err) {
         console.error(err);
@@ -96,6 +100,7 @@ router.post('/', async (req, res) => {
             [result.insertId] // ✔️ insertId siempre es el valor autoincremental, sin importar el nombre de la PK
         );
 
+        console.log(`✅ OK Nuevo usuario...(${ result.insertId }) ${ nombres } ${ apellidos }`);
         return res.status(201).json(rows[0]);
 
     } catch (err) {
@@ -134,7 +139,7 @@ router.put('/:id_usuario', async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
-
+        console.log(`✅ OK Update usuario...(${ id }) ${ nombres } ${ apellidos }`);
         const [rows] = await pool.query(
             `SELECT id_usuario, nombres, apellidos, email, telefono
             FROM cliente_usuario WHERE id_usuario = ?`,
@@ -171,7 +176,7 @@ router.delete('/:id_usuario', async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
-
+        console.log(`✅ OK DELETE usuario...(${ id })`);
         return res.status(204).send(); // No Content
 
     } catch (err) {
@@ -197,7 +202,7 @@ router.get('/email/:email', async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-
+    console.log(`✅ OK consulta Usuario ...(${ email })`);     
     return res.json(rows[0]);
 
   } catch (err) {

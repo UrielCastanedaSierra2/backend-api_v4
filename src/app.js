@@ -1,18 +1,16 @@
 // =================================
 // =     SERVIDOR EXPRESS  app.js  =
 // =================================
-function apiKey(req, res, next) {
-  const key = req.header('x-api-key');
-  if (!key || key !== process.env.API_KEY) {
-    return res.status(401).json({ error: 'API key inválida' });
-  }
-  next();
-}
 
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// 🧰🔑 ==== IMPORTS para Control y definición de APIs =====
+// Herramientas intermediarias (middleware) .... 
+// función apiKey() para validación de Password o Calve para acceder a las APIs
+import apiKey from './middleware/apikey.js';
 
 // Para conectar las rutas al servidor
 // 👁️‍🗨️ Conservamos EXACTAMENTE imports de la versión funcional de API a productos
@@ -20,9 +18,6 @@ import productosRoutes from './routes/productos.routes.js';
 import productosDbRoutes from './routes/productos.db.routes.js';
 
 // 👇 NUEVOS IMPORTS 
-// tener en cuenta la unicación real del middleware..  ajustar al path correcto:
-//import apiKey from './middleware/apiKey.js';
-
 // versión funcional de API a cliente_usuario
 import usersRouter from './routes/users.routes.js';
 
@@ -36,7 +31,7 @@ const app = express();
 // ───────────────────────────────────────────
 
 // Configuración CORS desde variables de entorno:
-// - CORS_ORIGINS: lista separada por coma. 
+// - CORS_ORIGINS: lista separada por coma. (para lista Blanca o URLs permitidas)
 //   Ej: http://localhost:5173,https://apps.powerapps.com
 
 //   Si no está definida, abrir a '*'.
@@ -46,9 +41,10 @@ const allowedOrigins =
       ? '*'
       : rawOrigins.split(',').map((o) => o.trim()).filter(Boolean);
 
+// 🔹 CORS (dejamos activo CORS para cuando ralizamos pruebas desde el navegador o Power Apps)      
 app.use(
    cors({
-      origin: allowedOrigins, // 👉 Cambia a lista blanca si quieres restringir: ['http://localhost:5173', ...]
+      origin: allowedOrigins, // 👉 Cambiar a lista blanca si quieres restringir: ['http://localhost:5173', ...]
       methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
       allowedHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
       credentials: false, // poner true en caso de manejar cookies/sesiones con front
@@ -71,10 +67,10 @@ app.use(express.static(path.resolve(__dirname, '../public')));
 // 3) Seguridad básica: API Key para todas las rutas /api/*
 //    (Debe ir ANTES del montaje de rutas /api/...)
 // ───────────────────────────────────────────
-app.use('/api', apiKey);
+app.use('/api', apiKey);     // La apiKey aplica a todas las APIs definidas en /api/*
 
 // ───────────────────────────────────────────
-// 4) Rutas de la aplicación
+// 4) Rutas de las APIs definidas en la aplicación
 // ───────────────────────────────────────────
 
 // Rutas de la API (prefijo: /api/productos)
@@ -93,6 +89,7 @@ app.use('/api/votos', votosRouter);             // ← NUEVA: detalle_votos
 // 5) Health-check (opcional, útil para monitoreo)
 // retorna  mensaje  de confirmación de  enlace correcta de la API  
 // al invocar la cabecera 
+// por ejemplo...
 // ───────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ ok: true, msg: 'Servidor operativo' });
@@ -115,11 +112,11 @@ app.use(express.static(...))
 
 app.use('/api', apiKey)
 👉 Exige x-api-key en todas las rutas que empiezan con /api/*
+(la clave debe estar registrada en .env → API_KEY)
 
-app.use('/api/productos', productosRoutes);
-app.use('/api/productos-db', productosDbRoutes);
-👉 Tus rutas de productos quedan intactas
+Rutas:
+👉 /api/productos            (productosRoutes)
+👉 /api/productos-db         (productosDbRoutes)
+👉 /api/users                (usersRouter)
 
-app.use('/api/users', usersRouter);
-👉 Se agregan las rutas de usuarios (tabla cliente_usuario)
 */

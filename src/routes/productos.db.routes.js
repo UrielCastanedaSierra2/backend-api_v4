@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
     const [rows] = await pool.query(
       'SELECT nombre, foto, votacion FROM productos'
     );
-
+    console.log(`✅ OK consulta productos...`);
     // ----  Emite la respuesta convirtiendo y entregando los datos en formato json
     // Entrega JSON plano (ideal para Power Apps)
     res.json(rows);
@@ -42,7 +42,7 @@ router.put('/votar/:nombre', async (req, res) => {
         'UPDATE productos SET votacion = votacion + 1 WHERE nombre = ?',
         [nombre]
       )
-
+      console.log(`✅ OK Update producto... ${ nombre }`);
       return res.json({ ok: true })
 
 
