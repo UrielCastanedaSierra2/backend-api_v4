@@ -174,6 +174,7 @@ router.delete('/:id_usuario', async (req, res) => {
         );
 
         if (result.affectedRows === 0) {
+            console.log(`✅🚦 Error 404 Al Borrar usuario...(${ id }) No emcintrado`);
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
         console.log(`✅ OK DELETE usuario...(${ id })`);
@@ -181,6 +182,7 @@ router.delete('/:id_usuario', async (req, res) => {
 
     } catch (err) {
         console.error(err);
+        console.log(`✅🚦 Error 500 Al Borrar usuario...(${ id }) ${ err }`);
         return res.status(500).json({ error: 'Error eliminando usuario' });
     }
 });
