@@ -26,12 +26,15 @@ router.post('/', async (req, res) => {
       [id_producto, fecha, id_votante]
     );
 
+    console.log(`✅ OK Voto registrado para el usuario...(${ id_votante }) --> producto (${ id_producto })`);
+
     return res.status(201).json({
       id_voto: result.insertId, // ← Será 0 si la PK no es AUTO_INCREMENT
       id_producto,
       id_votante,
       fecha_voto: fecha
     });
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Error registrando voto' });
@@ -54,7 +57,10 @@ router.get('/usuario/:id_votante', async (req, res) => {
        ORDER BY fecha_voto DESC`,
       [id]
     );
+    if (rows.length === 0) console.log(`❌ usuario (${ id }) No tiene votos.`);
+    else  console.log(`✅ OK Listado de Votos Consultado por id...(${ id })`);        
     return res.json(rows);
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Error consultando votos' });

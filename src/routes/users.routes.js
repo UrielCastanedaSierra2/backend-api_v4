@@ -9,6 +9,7 @@ const router = Router();
  *  - GET    /           -> Lista todos
  *  - POST   /           -> Crea uno
  *  - GET    /:id        -> Obtiene por id
+ *  - GET    /email/:email  -> Obtiene registro de usuario por  email
  *  - PUT    /:id        -> Actualiza parcial
  *  - DELETE /:id        -> Elimina
  *
@@ -104,10 +105,11 @@ router.post('/', async (req, res) => {
         return res.status(201).json(rows[0]);
 
     } catch (err) {
-        console.error(err);
         if (err.code === 'ER_DUP_ENTRY') {
+            console.error(`🚦 Error EMAIL (${ email }) ya existe...  `,err);               
             return res.status(409).json({ error: 'El email de este usuario ya existe' });
         }
+        console.error(`🚦 Erroral crear usuario (${ id })....  `,err);              
         return res.status(500).json({ error: 'Error creando usuario' });
     }
 });
@@ -149,11 +151,12 @@ router.put('/:id_usuario', async (req, res) => {
         return res.json(rows[0]);
 
     } catch (err) {
-        console.error(err);
         if (err.code === 'ER_DUP_ENTRY') {
+            console.error(`🚦 Error EMAIL (${ email }) ya existe...  `,err);      
             return res.status(409).json({ error: 'El email ya existe' });
         }
-        return res.status(500).json({ error: 'Error actualizando usuario' });
+        console.error(`❌ Error 500 Al Actualizar usuario..(${ id })`,err);
+        return res.status(500).json({ error: 'Error Al Actualizar usuario' });        
     }
 });
 
@@ -161,7 +164,6 @@ router.put('/:id_usuario', async (req, res) => {
 // ELIMINAR: DELETE /api/users/:id_usuario
 // ─────────────────────────────────────────────────────────────
 router.delete('/:id_usuario', async (req, res) => {
-    console.log(`✂ intentando BORRAR usuario...`);
     const id = parseInt(req.params.id_usuario, 10);
     if (Number.isNaN(id)) {
         return res.status(400).json({ error: 'id_usuario inválido' });
@@ -182,8 +184,7 @@ router.delete('/:id_usuario', async (req, res) => {
         return res.status(204).send(); // No Content
 
     } catch (err) {
-        console.error(err);
-        console.log(`❌ Error 500 Al Borrar usuario...(${ id }) ${ err }`);
+        console.error(`❌ Error 500 Al Borrar usuario...(${ id })`,err);
         return res.status(500).json({ error: 'Error eliminando usuario' });
     }
 });
@@ -203,7 +204,8 @@ router.get('/email/:email', async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+        console.log(`❌ Usuario No Encontrado... (${ email })`);             
+        return res.status(404).json({ error: 'Usuario no encontrado' });
     }
     console.log(`✅ OK consulta Usuario ...(${ email })`);     
     return res.json(rows[0]);
