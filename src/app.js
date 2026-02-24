@@ -14,6 +14,10 @@ import { fileURLToPath } from 'url';
 import apiKey from './middleware/apikey.js';
 
 // Para conectar las rutas al servidor
+// -----------------------------------
+// 🔍API especial para probar conexión incorporando API-Key
+import pingRouter from './routes/ping.routes.js';
+
 // 👁️‍🗨️ Conservamos EXACTAMENTE imports de la versión funcional de API a productos
 import productosRoutes from './routes/productos.routes.js';
 import productosDbRoutes from './routes/productos.db.routes.js';
@@ -28,7 +32,14 @@ import votosRouter from './routes/votos.routes.js';
 const app = express();
 
 // ───────────────────────────────────────────
-// 1) Middlewares base (antes de las rutas)
+//  1) JSON body parsing (Es conveniente que esté antes de CORS)
+// ───────────────────────────────────────────
+app.use(express.json());                           // ← Body JSON
+app.use(express.urlencoded({ extended: true }));   // ← Formularios (opcional)
+
+// ───────────────────────────────────────────
+// 2) Middlewares base (antes de las rutas)
+//    CORS (compatible con Power Apps/Azure APIM y el Front en Railway)
 // ───────────────────────────────────────────
 
 // Configuración CORS desde variables de entorno:
@@ -39,23 +50,20 @@ const app = express();
 //   Si no está definida, abrir a '*'.
 const rawOrigins = process.env.CORS_ORIGINS || '*';
 const allowedOrigins =
-   (rawOrigins === '*')
-      ? '*'
+   (rawOrigins === '*')   
+      ? '*'              // abrir todo en desarrollo/pruebas
       : rawOrigins.split(',').map((o) => o.trim()).filter(Boolean);
 
 // 🔹 CORS (dejamos activo CORS para cuando ralizamos pruebas desde el navegador o Power Apps)      
-app.use(
-   cors({
+app.use(cors({
       origin: allowedOrigins, // 👉 Cambiar a lista blanca si quieres restringir: ['http://localhost:5173', ...]
       methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
       allowedHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
       credentials: false, // poner true en caso de manejar cookies/sesiones con front
-   })
-);
+}));
 
-// Body parsers
-app.use(express.json());                           // ← Body JSON
-app.use(express.urlencoded({ extended: true }));   // ← Formularios (opcional)
+// MUY IMPORTANTE: habilitar preflight para todos los paths
+app.options(/.*/, cors());
 
 
 // Logs HTTP con morgan (funciona en desarrollo y producción)
@@ -65,7 +73,7 @@ app.use(express.urlencoded({ extended: true }));   // ← Formularios (opcional)
 app.use(morgan('combined')); // o 'dev' si se prefiere más compacto en dev
 
 // ───────────────────────────────────────────
-// 2) Servir archivos estáticos (se conserva definición funcional - productos)
+// 3) Servir archivos estáticos (se conserva definición funcional - productos)
 //    Permite acceder a /imagenes/productos/archivo.jpg
 //    Ej: http://localhost:3000/imagenes/productos/elseve.jpg
 // ───────────────────────────────────────────
@@ -74,13 +82,17 @@ const __dirname  = path.dirname(__filename);
 app.use(express.static(path.resolve(__dirname, '../public')));
 
 // ───────────────────────────────────────────
-// 3) Seguridad básica: API Key para todas las rutas /api/*
-//    (Debe ir ANTES del montaje de rutas /api/...)
+// 4) Seguridad básica: API Key para todas las rutas /api/*
+//    (apiKey debe ser la primera, ANTES del montaje de rutas /api/...)
 // ───────────────────────────────────────────
 app.use('/api', apiKey);     // La apiKey aplica a todas las APIs definidas en /api/*
 
+// Ping protegido por API Key (útil para probar el conector)
+app.use('/api/ping', pingRouter); // API especial ubicada en  /api/ping
+
+
 // ───────────────────────────────────────────
-// 4) Rutas de las APIs definidas en la aplicación
+// 5) Rutas de las APIs definidas en la aplicación
 // ───────────────────────────────────────────
 
 // Rutas de la API (prefijo: /api/productos)
@@ -103,25 +115,23 @@ app.get('/health', (req, res) => {
 });
 
 // ───────────────────────────────────────────
-// 5) 404 para /api/* en JSON (evita HTML “Cannot …” )
+// 6) 404 para /api/* en JSON (evita HTML “Cannot …” )
 // ───────────────────────────────────────────
 // Traza simple de requests a /api/* (útil para depuración y didáctica)
-app.use('/api', (req, res, next) => {
+// Se coloca de último,  con ello  si  llega una petición API  y no está
+// en el listado previo.El control es tomado por esta y se muestra el error.
+app.use('/api', (req, res) => {
   console.log(`→🚦 Error 404 ruta API no econtrada ${req.method} ${req.originalUrl}`);  
   res.status(404).json({ error: 'Ruta no encontrada' });
-  next();  
 });
 
 
-
-
 // ───────────────────────────────────────────
-// 6) Manejador de errores 500 en JSON */
+// 7) Manejador de errores 500 en JSON */
 // ───────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error(`→🔥 Error no controlado:  ${req.method} ${req.originalUrl}`, err);
   res.status(500).json({ error: 'Error interno del servidor' });
-  next();    
 });
 
 export default app;

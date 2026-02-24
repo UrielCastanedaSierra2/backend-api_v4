@@ -1,164 +1,533 @@
-{
-  "openapi": "3.0.3",
-  "info": {
-    "title": "Backend API (Productos & Usuarios)",
-    "version": "1.0.0",
-    "description": "API para gestionar productos (votación) y usuarios (CRUD). Autenticación opcional con x-api-key."
-  },
-  "servers": [
-     { "url": "https://backend-apiv4-production.up.railway.app" }
-  ],
-  "paths": {
-    "/health": {
-      "get": {
-        "summary": "Healthcheck",
-        "operationId": "health",
-        "responses": { "200": { "description": "OK" } }
-      }
-    },
-    "/api/productos-db": {
-      "get": {
-        "summary": "Listar productos",
-        "operationId": "listProducts",
-        "responses": {
-          "200": {
-            "description": "Listado de productos",
-            "content": {
-              "application/json": {
-                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } }
-              }
-            }
-          }
-        },
-        "security": [{ "ApiKeyAuth": [] }]
-      }
-    },
-    "/api/productos-db/votar/{nombre}": {
-      "put": {
-        "summary": "Votar producto por nombre (+1)",
-        "operationId": "voteProduct",
-        "parameters": [
-          { "in": "path", "name": "nombre", "required": true, "schema": { "type": "string" } }
-        ],
-        "responses": {
-          "200": { "description": "Votación incrementada", "content": { "application/json": { "schema": { "type": "object", "properties": { "ok": { "type": "boolean" } } } } } },
-          "404": { "description": "Producto no encontrado" }
-        },
-        "security": [{ "ApiKeyAuth": [] }]
-      }
-    },
-    "/api/users": {
-      "get": {
-        "summary": "Listar usuarios",
-        "operationId": "listUsers",
-        "responses": {
-          "200": {
-            "description": "Listado de usuarios",
-            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/User" } } } }
-          }
-        },
-        "security": [{ "ApiKeyAuth": [] }]
-      },
-      "post": {
-        "summary": "Crear usuario",
-        "operationId": "createUser",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/NewUser" },
-              "examples": { "ejemplo": { "value": { "nombre": "Ana", "correo": "ana@mail.com" } } }
-            }
-          }
-        },
-        "responses": {
-          "201": { "description": "Usuario creado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
-          "400": { "description": "Datos inválidos" },
-          "409": { "description": "Correo duplicado" }
-        },
-        "security": [{ "ApiKeyAuth": [] }]
-      }
-    },
-    "/api/users/{id}": {
-      "get": {
-        "summary": "Obtener usuario por ID",
-        "operationId": "getUser",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
-        "responses": {
-          "200": { "description": "Usuario", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
-          "404": { "description": "No encontrado" }
-        },
-        "security": [{ "ApiKeyAuth": [] }]
-      },
-      "put": {
-        "summary": "Actualizar usuario",
-        "operationId": "updateUser",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUser" } } } },
-        "responses": {
-          "200": { "description": "Usuario actualizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
-          "400": { "description": "Datos inválidos" },
-          "404": { "description": "No encontrado" }
-        },
-        "security": [{ "ApiKeyAuth": [] }]
-      },
-      "delete": {
-        "summary": "Eliminar usuario",
-        "operationId": "deleteUser",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
-        "responses": {
-          "204": { "description": "Eliminado" },
-          "404": { "description": "No encontrado" }
-        },
-        "security": [{ "ApiKeyAuth": [] }]
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Product": {
-        "type": "object",
-        "properties": {
-          "nombre": { "type": "string" },
-          "foto": { "type": "string" },
-          "votacion": { "type": "integer" }
-        },
-        "required": ["nombre", "votacion"]
-      },
-      "User": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "integer" },
-          "nombre": { "type": "string" },
-          "correo": { "type": "string" },
-          "creado_en": { "type": "string", "format": "date-time" }
-        },
-        "required": ["id", "nombre", "correo", "creado_en"]
-      },
-      "NewUser": {
-        "type": "object",
-        "properties": {
-          "nombre": { "type": "string" },
-          "correo": { "type": "string", "format": "email" }
-        },
-        "required": ["nombre", "correo"]
-      },
-      "UpdateUser": {
-        "type": "object",
-        "properties": {
-          "nombre": { "type": "string" },
-          "correo": { "type": "string", "format": "email" }
-        }
-      }
-    },
-    "securitySchemes": {
-      "ApiKeyAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "x-api-key",
-        "description": "Llave para autenticar desde Power Apps."
-      }
-    }
-  },
-  "security": [{ "ApiKeyAuth": [] }]
-}
+swagger: "2.0"
+info:
+  title: "L'Oreal Ranking API (Railway) - Conector Power Apps"
+  description: "API REST del sistema de ranking de productos L'Oreal. Backend en Railway con seguridad por API Key en el header 'x-api-key'. Este conector expone rutas para Productos (simulado y MySQL), Usuarios y Votos."
+  version: "1.0.0"
+
+host: "backend-apiv4-production.up.railway.app"
+basePath: "/"
+schemes:
+  - "https"
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+securityDefinitions:
+  ApiKeyAuth:
+    type: "apiKey"
+    in: "header"
+    name: "x-api-key"
+
+# Por defecto todas las operaciones requieren API Key
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: "Salud"
+    description: "Endpoints de verificación del servicio"
+  - name: "Productos (Simulado)"
+    description: "Endpoints de la tabla simulada (sin DB)"
+  - name: "Productos (MySQL)"
+    description: "Endpoints que consultan directamente la base MySQL"
+  - name: "Usuarios"
+    description: "CRUD de usuarios (tabla cliente_usuario)"
+  - name: "Votos"
+    description: "Registro y consulta de votos (tabla detalle_votos)"
+
+paths:
+  "/health":
+    get:
+      tags:
+        - "Salud"
+      summary: "Health-check"
+      description: "Verifica que el servidor está operativo. No requiere API Key del lado del backend."
+      operationId: "health"
+      x-ms-visibility: "important"
+      # Anula la seguridad global
+      security: []
+      responses:
+        "200":
+          description: "Servidor operativo"
+          schema:
+            type: "object"
+            properties:
+              ok:
+                type: "boolean"
+              msg:
+                type: "string"
+            required:
+              - "ok"
+              - "msg"
+          examples:
+            application/json:
+              ok: true
+              msg: "Servidor operativo"
+
+  "/api/ping":
+    get:
+      tags:
+        - "Salud"
+      summary: "Ping protegido"
+      description: "Responde pong. Requiere API Key en header x-api-key."
+      operationId: "ping_protegido"
+      x-ms-visibility: "important"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              ok:
+                type: "boolean"
+              msg:
+                type: "string"
+            required:
+              - "ok"
+              - "msg"
+          examples:
+            application/json:
+              ok: true
+              msg: "pong"
+
+  # =========================
+  # Productos - Simulado (MEMORIA)
+  # =========================
+  "/api/productos":
+    get:
+      tags:
+        - "Productos (Simulado)"
+      summary: "Listar productos (simulado)"
+      description: "Devuelve la lista simulada de productos (sin base de datos)."
+      operationId: "productos_list_sim"
+      x-ms-visibility: "advanced"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Producto"
+
+  "/api/productos/votar/{nombre}":
+    put:
+      tags:
+        - "Productos (Simulado)"
+      summary: "Votar producto por nombre (simulado)"
+      description: "Incrementa en +1 la votación del producto identificado por su nombre en la tabla simulada."
+      operationId: "productos_vote_sim"
+      parameters:
+        - in: "path"
+          name: "nombre"
+          required: true
+          type: "string"
+          description: "Nombre exacto del producto a votar (p. ej.: 'True Match')."
+      responses:
+        "200":
+          description: "Voto registrado"
+          schema:
+            $ref: "#/definitions/OkResponse"
+        "404":
+          description: "Producto no encontrado"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  # =========================
+  # Productos - MySQL (Railway)
+  # =========================
+  "/api/productos-db":
+    get:
+      tags:
+        - "Productos (MySQL)"
+      summary: "Listar productos (MySQL)"
+      description: "Consulta productos desde la base de datos en Railway."
+      operationId: "productos_db_list"
+      x-ms-visibility: "important"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Producto"
+        "500":
+          description: "Error al consultar MySQL"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  "/api/productos-db/votar/{nombre}":
+    put:
+      tags:
+        - "Productos (MySQL)"
+      summary: "Votar producto por nombre (MySQL)"
+      description: "Incrementa en +1 la votación del producto identificado por su nombre (columna 'nombre')."
+      operationId: "productos_db_vote"
+      parameters:
+        - in: "path"
+          name: "nombre"
+          required: true
+          type: "string"
+          description: "Nombre exacto del producto a votar."
+      responses:
+        "200":
+          description: "Voto registrado"
+          schema:
+            $ref: "#/definitions/OkResponse"
+        "500":
+          description: "Error al procesar el voto"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  # =========================
+  # Usuarios (cliente_usuario)
+  # =========================
+  "/api/users":
+    get:
+      tags:
+        - "Usuarios"
+      summary: "Listar usuarios"
+      description: "Devuelve el listado de usuarios."
+      operationId: "users_list"
+      x-ms-visibility: "important"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/User"
+        "500":
+          description: "Error listando usuarios"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      tags:
+        - "Usuarios"
+      summary: "Crear usuario"
+      description: "Crea un usuario con nombres, apellidos, email y teléfono."
+      operationId: "users_create"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/UserCreate"
+      responses:
+        "201":
+          description: "Creado"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "Datos inválidos"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "409":
+          description: "Email ya existe"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "500":
+          description: "Error creando usuario"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  "/api/users/{id_usuario}":
+    get:
+      tags:
+        - "Usuarios"
+      summary: "Obtener usuario por ID"
+      description: "Devuelve un usuario por su identificador."
+      operationId: "users_getById"
+      parameters:
+        - in: "path"
+          name: "id_usuario"
+          required: true
+          type: "integer"
+          format: "int32"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "ID inválido"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "404":
+          description: "Usuario no encontrado"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "500":
+          description: "Error consultando usuario"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    put:
+      tags:
+        - "Usuarios"
+      summary: "Actualizar usuario (completo)"
+      description: "Actualiza totalmente un usuario (requiere todos los campos)."
+      operationId: "users_update"
+      parameters:
+        - in: "path"
+          name: "id_usuario"
+          required: true
+          type: "integer"
+          format: "int32"
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/UserUpdate"
+      responses:
+        "200":
+          description: "Actualizado"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "Datos inválidos o ID inválido"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "404":
+          description: "Usuario no encontrado"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "409":
+          description: "Email ya existe"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "500":
+          description: "Error actualizando usuario"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    delete:
+      tags:
+        - "Usuarios"
+      summary: "Eliminar usuario"
+      description: "Elimina un usuario por ID."
+      operationId: "users_delete"
+      parameters:
+        - in: "path"
+          name: "id_usuario"
+          required: true
+          type: "integer"
+          format: "int32"
+      responses:
+        "204":
+          description: "Eliminado (sin contenido)"
+        "400":
+          description: "ID inválido"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "404":
+          description: "Usuario no encontrado"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "500":
+          description: "Error eliminando usuario"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  "/api/users/email/{email}":
+    get:
+      tags:
+        - "Usuarios"
+      summary: "Obtener usuario por email"
+      description: "Devuelve un usuario por su email."
+      operationId: "users_getByEmail"
+      parameters:
+        - in: "path"
+          name: "email"
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/User"
+        "404":
+          description: "Usuario no encontrado"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "500":
+          description: "Error consultando por email"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  # =========================
+  # Votos (detalle_votos)
+  # =========================
+  "/api/votos":
+    post:
+      tags:
+        - "Votos"
+      summary: "Registrar voto"
+      description: "Inserta un voto con fecha actual."
+      operationId: "votos_create"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/VotoCreate"
+      responses:
+        "201":
+          description: "Voto registrado"
+          schema:
+            $ref: "#/definitions/Voto"
+        "400":
+          description: "Datos incompletos"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "500":
+          description: "Error registrando voto"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  "/api/votos/usuario/{id_votante}":
+    get:
+      tags:
+        - "Votos"
+      summary: "Listar votos de un usuario"
+      description: "Devuelve los votos de un usuario en orden descendente por fecha."
+      operationId: "votos_listByUsuario"
+      parameters:
+        - in: "path"
+          name: "id_votante"
+          required: true
+          type: "integer"
+          format: "int32"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Voto"
+        "400":
+          description: "ID inválido"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "500":
+          description: "Error consultando votos"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  OkResponse:
+    type: "object"
+    properties:
+      ok:
+        type: "boolean"
+    required:
+      - "ok"
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      error:
+        type: "string"
+      message:
+        type: "string"
+
+  Producto:
+    type: "object"
+    properties:
+      nombre:
+        type: "string"
+      foto:
+        type: "string"
+      votacion:
+        type: "integer"
+        format: "int32"
+    required:
+      - "nombre"
+      - "foto"
+      - "votacion"
+
+  User:
+    type: "object"
+    properties:
+      id_usuario:
+        type: "integer"
+        format: "int32"
+      nombres:
+        type: "string"
+      apellidos:
+        type: "string"
+      email:
+        type: "string"
+      telefono:
+        type: "string"
+    required:
+      - "id_usuario"
+      - "nombres"
+      - "apellidos"
+      - "email"
+      - "telefono"
+
+  UserCreate:
+    type: "object"
+    properties:
+      nombres:
+        type: "string"
+      apellidos:
+        type: "string"
+      email:
+        type: "string"
+      telefono:
+        type: "string"
+    required:
+      - "nombres"
+      - "apellidos"
+      - "email"
+      - "telefono"
+
+  UserUpdate:
+    type: "object"
+    properties:
+      nombres:
+        type: "string"
+      apellidos:
+        type: "string"
+      email:
+        type: "string"
+      telefono:
+        type: "string"
+    required:
+      - "nombres"
+      - "apellidos"
+      - "email"
+      - "telefono"
+
+  VotoCreate:
+    type: "object"
+    properties:
+      id_producto:
+        type: "integer"
+        format: "int32"
+      id_votante:
+        type: "integer"
+        format: "int32"
+    required:
+      - "id_producto"
+      - "id_votante"
+
+  Voto:
+    type: "object"
+    properties:
+      id_voto:
+        type: "integer"
+        format: "int32"
+      id_producto:
+        type: "integer"
+        format: "int32"
+      id_votante:
+        type: "integer"
+        format: "int32"
+      fecha_voto:
+        type: "string"
+        format: "date-time"
+    required:
+      - "id_producto"
+      - "id_votante"
+      - "fecha_voto"
