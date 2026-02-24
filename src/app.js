@@ -82,6 +82,47 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 app.use(express.static(path.resolve(__dirname, '../public')));
 
+
+// =========== PARA  TRAZABILIDAD Y SEGUIR EN EL LOG DE CONSOLA  
+// TODO lo que entra y sale...
+app.use((req, res, next) => {
+  console.log("➡️  NUEVA PETICIÓN", {
+    method: req.method,
+    url: req.originalUrl,
+    headers: {
+      origin: req.headers.origin,
+      'content-type': req.headers['content-type'],
+      'x-api-key': req.headers['x-api-key'] ? '***' : undefined,
+    },
+    query: req.query,
+    params: req.params,
+    body: req.body,
+  });
+
+  const start = Date.now();
+  const sendJson = res.json.bind(res);
+  res.json = (payload) => {
+    console.log("⬅️  RESPUESTA", {
+      status: res.statusCode,
+      ms: Date.now() - start,
+      payload
+    });
+    return sendJson(payload);
+  };
+
+  next();
+});
+
+
+// ===== RUTAS PÚBLICAS (NO API, sin API Key) =====
+// Health-check (opcional, útil para monitoreo)
+// Permite verificar y confirmar enlace correcta de la API  o APIs
+// Retorna mensaje invocando la API de cabecera   /health
+app.get('/health', (req, res) => {
+  res.json({ ok: true, msg: 'Servidor operativo' });
+});
+
+
 // ───────────────────────────────────────────
 // 4) Seguridad básica: API Key para todas las rutas /api/*
 //    (apiKey debe ser la primera, ANTES del montaje de rutas /api/...)
@@ -108,13 +149,7 @@ app.use('/api/users', usersRouter);             // ← NUEVA: Usuarios (cliente_
 // Rutas de la API de votos (prefijo: /api/votos)
 app.use('/api/votos', votosRouter);             // ← NUEVA: detalle_votos
 
-// ===== RUTAS PÚBLICAS (sin API Key) =====
-// Health-check (opcional, útil para monitoreo)
-// Permite verificar y confirmar enlace correcta de la API  o APIs
-// Retorna mensaje invocando la API de cabecera   /health
-app.get('/health', (req, res) => {
-  res.json({ ok: true, msg: 'Servidor operativo' });
-});
+// ===== RUTAS API PÚBLICAS (sin API Key) =====
 app.use('/api/ping-public', pingPublicRouter);
 
 // ───────────────────────────────────────────
