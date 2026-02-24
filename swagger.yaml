@@ -1,8 +1,8 @@
 swagger: "2.0"
 info:
   title: "L'Oreal Ranking API (Railway) - Conector Power Apps"
-  description: "API REST del sistema de ranking de productos L'Oreal. Backend en Railway con seguridad por API Key en el header 'x-api-key'. Este conector expone rutas para Productos (simulado y MySQL), Usuarios y Votos."
-  version: "1.0.0"
+  description: "API REST del sistema de ranking de productos L'Oreal. Seguridad global por API Key (header 'x-api-key').\n\nNota: En ambiente de desarrollo (NODE_ENV=development o SKIP_API_KEY=true), el backend puede omitir la validación de API Key. Además, se expone '/api/ping-public' sin seguridad para pruebas de conectividad."
+  version: "1.0.1"
 
 host: "backend-apiv4-production.up.railway.app"
 basePath: "/"
@@ -20,7 +20,7 @@ securityDefinitions:
     in: "header"
     name: "x-api-key"
 
-# Por defecto todas las operaciones requieren API Key
+# Seguridad global: todas las operaciones requieren API Key salvo que se anule con security: []
 security:
   - ApiKeyAuth: []
 
@@ -39,13 +39,11 @@ tags:
 paths:
   "/health":
     get:
-      tags:
-        - "Salud"
+      tags: ["Salud"]
       summary: "Health-check"
       description: "Verifica que el servidor está operativo. No requiere API Key del lado del backend."
       operationId: "health"
       x-ms-visibility: "important"
-      # Anula la seguridad global
       security: []
       responses:
         "200":
@@ -57,9 +55,7 @@ paths:
                 type: "boolean"
               msg:
                 type: "string"
-            required:
-              - "ok"
-              - "msg"
+            required: ["ok", "msg"]
           examples:
             application/json:
               ok: true
@@ -67,10 +63,9 @@ paths:
 
   "/api/ping":
     get:
-      tags:
-        - "Salud"
+      tags: ["Salud"]
       summary: "Ping protegido"
-      description: "Responde pong. Requiere API Key en header x-api-key."
+      description: "Responde pong. Requiere API Key en header x-api-key (salvo bypass en desarrollo)."
       operationId: "ping_protegido"
       x-ms-visibility: "important"
       responses:
@@ -83,21 +78,39 @@ paths:
                 type: "boolean"
               msg:
                 type: "string"
-            required:
-              - "ok"
-              - "msg"
+            required: ["ok", "msg"]
           examples:
             application/json:
               ok: true
               msg: "pong"
 
-  # =========================
-  # Productos - Simulado (MEMORIA)
-  # =========================
+  "/api/ping-public":
+    get:
+      tags: ["Salud"]
+      summary: "Ping público (sin API Key)"
+      description: "Responde pong sin exigir API Key. Útil para pruebas de CORS/conectividad desde Power Apps u orígenes de desarrollo."
+      operationId: "ping_publico"
+      x-ms-visibility: "advanced"
+      security: []
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              ok:
+                type: "boolean"
+              msg:
+                type: "string"
+            required: ["ok", "msg"]
+          examples:
+            application/json:
+              ok: true
+              msg: "pong (public)"
+
   "/api/productos":
     get:
-      tags:
-        - "Productos (Simulado)"
+      tags: ["Productos (Simulado)"]
       summary: "Listar productos (simulado)"
       description: "Devuelve la lista simulada de productos (sin base de datos)."
       operationId: "productos_list_sim"
@@ -112,8 +125,7 @@ paths:
 
   "/api/productos/votar/{nombre}":
     put:
-      tags:
-        - "Productos (Simulado)"
+      tags: ["Productos (Simulado)"]
       summary: "Votar producto por nombre (simulado)"
       description: "Incrementa en +1 la votación del producto identificado por su nombre en la tabla simulada."
       operationId: "productos_vote_sim"
@@ -133,13 +145,9 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
 
-  # =========================
-  # Productos - MySQL (Railway)
-  # =========================
   "/api/productos-db":
     get:
-      tags:
-        - "Productos (MySQL)"
+      tags: ["Productos (MySQL)"]
       summary: "Listar productos (MySQL)"
       description: "Consulta productos desde la base de datos en Railway."
       operationId: "productos_db_list"
@@ -158,8 +166,7 @@ paths:
 
   "/api/productos-db/votar/{nombre}":
     put:
-      tags:
-        - "Productos (MySQL)"
+      tags: ["Productos (MySQL)"]
       summary: "Votar producto por nombre (MySQL)"
       description: "Incrementa en +1 la votación del producto identificado por su nombre (columna 'nombre')."
       operationId: "productos_db_vote"
@@ -179,13 +186,9 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
 
-  # =========================
-  # Usuarios (cliente_usuario)
-  # =========================
   "/api/users":
     get:
-      tags:
-        - "Usuarios"
+      tags: ["Usuarios"]
       summary: "Listar usuarios"
       description: "Devuelve el listado de usuarios."
       operationId: "users_list"
@@ -202,8 +205,7 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
     post:
-      tags:
-        - "Usuarios"
+      tags: ["Usuarios"]
       summary: "Crear usuario"
       description: "Crea un usuario con nombres, apellidos, email y teléfono."
       operationId: "users_create"
@@ -233,8 +235,7 @@ paths:
 
   "/api/users/{id_usuario}":
     get:
-      tags:
-        - "Usuarios"
+      tags: ["Usuarios"]
       summary: "Obtener usuario por ID"
       description: "Devuelve un usuario por su identificador."
       operationId: "users_getById"
@@ -262,8 +263,7 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
     put:
-      tags:
-        - "Usuarios"
+      tags: ["Usuarios"]
       summary: "Actualizar usuario (completo)"
       description: "Actualiza totalmente un usuario (requiere todos los campos)."
       operationId: "users_update"
@@ -300,8 +300,7 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
     delete:
-      tags:
-        - "Usuarios"
+      tags: ["Usuarios"]
       summary: "Eliminar usuario"
       description: "Elimina un usuario por ID."
       operationId: "users_delete"
@@ -329,8 +328,7 @@ paths:
 
   "/api/users/email/{email}":
     get:
-      tags:
-        - "Usuarios"
+      tags: ["Usuarios"]
       summary: "Obtener usuario por email"
       description: "Devuelve un usuario por su email."
       operationId: "users_getByEmail"
@@ -353,13 +351,9 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
 
-  # =========================
-  # Votos (detalle_votos)
-  # =========================
   "/api/votos":
     post:
-      tags:
-        - "Votos"
+      tags: ["Votos"]
       summary: "Registrar voto"
       description: "Inserta un voto con fecha actual."
       operationId: "votos_create"
@@ -385,8 +379,7 @@ paths:
 
   "/api/votos/usuario/{id_votante}":
     get:
-      tags:
-        - "Votos"
+      tags: ["Votos"]
       summary: "Listar votos de un usuario"
       description: "Devuelve los votos de un usuario en orden descendente por fecha."
       operationId: "votos_listByUsuario"
@@ -418,8 +411,7 @@ definitions:
     properties:
       ok:
         type: "boolean"
-    required:
-      - "ok"
+    required: ["ok"]
 
   ErrorResponse:
     type: "object"
@@ -439,10 +431,7 @@ definitions:
       votacion:
         type: "integer"
         format: "int32"
-    required:
-      - "nombre"
-      - "foto"
-      - "votacion"
+    required: ["nombre", "foto", "votacion"]
 
   User:
     type: "object"
@@ -458,12 +447,7 @@ definitions:
         type: "string"
       telefono:
         type: "string"
-    required:
-      - "id_usuario"
-      - "nombres"
-      - "apellidos"
-      - "email"
-      - "telefono"
+    required: ["id_usuario", "nombres", "apellidos", "email", "telefono"]
 
   UserCreate:
     type: "object"
@@ -476,11 +460,7 @@ definitions:
         type: "string"
       telefono:
         type: "string"
-    required:
-      - "nombres"
-      - "apellidos"
-      - "email"
-      - "telefono"
+    required: ["nombres", "apellidos", "email", "telefono"]
 
   UserUpdate:
     type: "object"
@@ -493,11 +473,7 @@ definitions:
         type: "string"
       telefono:
         type: "string"
-    required:
-      - "nombres"
-      - "apellidos"
-      - "email"
-      - "telefono"
+    required: ["nombres", "apellidos", "email", "telefono"]
 
   VotoCreate:
     type: "object"
@@ -508,9 +484,7 @@ definitions:
       id_votante:
         type: "integer"
         format: "int32"
-    required:
-      - "id_producto"
-      - "id_votante"
+    required: ["id_producto", "id_votante"]
 
   Voto:
     type: "object"
@@ -527,7 +501,4 @@ definitions:
       fecha_voto:
         type: "string"
         format: "date-time"
-    required:
-      - "id_producto"
-      - "id_votante"
-      - "fecha_voto"
+    required: ["id_producto", "id_votante", "fecha_voto"]

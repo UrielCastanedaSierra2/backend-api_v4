@@ -17,6 +17,7 @@ import apiKey from './middleware/apikey.js';
 // -----------------------------------
 // 🔍API especial para probar conexión incorporando API-Key
 import pingRouter from './routes/ping.routes.js';
+import pingPublicRouter from './routes/ping.public.routes.js';
 
 // 👁️‍🗨️ Conservamos EXACTAMENTE imports de la versión funcional de API a productos
 import productosRoutes from './routes/productos.routes.js';
@@ -88,7 +89,7 @@ app.use(express.static(path.resolve(__dirname, '../public')));
 app.use('/api', apiKey);     // La apiKey aplica a todas las APIs definidas en /api/*
 
 // Ping protegido por API Key (útil para probar el conector)
-app.use('/api/ping', pingRouter); // API especial ubicada en  /api/ping
+app.use('/api/ping', pingRouter);   // API especial ubicada en  /api/ping
 
 
 // ───────────────────────────────────────────
@@ -107,12 +108,14 @@ app.use('/api/users', usersRouter);             // ← NUEVA: Usuarios (cliente_
 // Rutas de la API de votos (prefijo: /api/votos)
 app.use('/api/votos', votosRouter);             // ← NUEVA: detalle_votos
 
+// ===== RUTAS PÚBLICAS (sin API Key) =====
 // Health-check (opcional, útil para monitoreo)
 // Permite verificar y confirmar enlace correcta de la API  o APIs
 // Retorna mensaje invocando la API de cabecera   /health
 app.get('/health', (req, res) => {
   res.json({ ok: true, msg: 'Servidor operativo' });
 });
+app.use('/api/ping-public', pingPublicRouter);
 
 // ───────────────────────────────────────────
 // 6) 404 para /api/* en JSON (evita HTML “Cannot …” )
