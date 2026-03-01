@@ -94,9 +94,23 @@ router.put('/votar/:nombre', async (req, res) => {
         'UPDATE productos SET votacion = votacion + 1 WHERE nombre = ?',
         [nombre]
       )
-      console.log(`✅ OK Update producto... ${ nombre }`);
-      return res.json({ ok: true })
 
+    //---------------------------
+    // Ajuste  para  guardar integridad en los datos
+    // Se guarda inserta registro  en la Tabla de detalle votos
+    // tomando como cliente_usuario.id_usuario = 0  (Usuario Front_Vue)
+    const fecha = new Date();
+    const id_votante = 0;   // id_usuario asignado al Front_Vue
+
+    const [result] = await pool.query(
+      `INSERT INTO detalle_votos (id_producto, fecha_voto, id_votante)
+       VALUES ((SELECT id_producto from productos WHERE nombre = '${nombre}' LIMIT 1), ?, ?)`,
+      [ fecha, id_votante]
+    );
+
+      console.log(`✅ OK Update producto... ${ nombre }`);
+      console.log(`✅ OK Voto registrado para el usuario...(${ id_votante } - Front_Vue)`);      
+      return res.json({ ok: true })
 
   } catch (error) {
     console.error('Error al votar:', error)
