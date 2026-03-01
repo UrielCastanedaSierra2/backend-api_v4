@@ -30,9 +30,31 @@ router.get('/', async (req, res) => {
 
 
 // ─────────────────────────────────────────────────────────────
-// OBTENER POR ID: GET /api/productos-db/:id_producto
+// OBTENER POR ID: GET /api/productos-db/id
 // ─────────────────────────────────────────────────────────────
-router.get('/:id_producto', async (req, res) => {
+// GET /api/productos-db/id
+router.get('/id', async (req, res) => {
+  try {
+    // ---- Aquí se lanzael Query con las instrucciones SQL
+    //      que permiten obtener el listado de todos los productos
+    const [rows] = await pool.query(
+      'SELECT id_producto, nombre, foto, votacion FROM productos'
+    );
+    console.log(`✅ OK consulta productos (incluye id)...`);
+    // ----  Emite la respuesta convirtiendo y entregando los datos en formato json
+    // Entrega JSON plano (ideal para Power Apps)
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al consultar MySQL Railway' });
+  }
+});
+
+
+// ─────────────────────────────────────────────────────────────
+// OBTENER POR ID: GET /api/productos-db/id/:id_producto
+// ─────────────────────────────────────────────────────────────
+router.get('/id/:id_producto', async (req, res) => {
   const id = parseInt(req.params.id_producto, 10);
   if (Number.isNaN(id)) {
       return res.status(400).json({ error: 'id_producto inválido' });
@@ -42,7 +64,7 @@ router.get('/:id_producto', async (req, res) => {
     // ---- Aquí se lanzael Query con las instrucciones SQL
     //      que permiten obtener el productos solicitado
     const [rows] = await pool.query(
-      `SELECT nombre, foto, votacion FROM productos
+      `SELECT id_producto, nombre, foto, votacion FROM productos
             WHERE id_producto = ?`,
             [id]      
     );
