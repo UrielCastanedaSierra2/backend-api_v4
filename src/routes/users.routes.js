@@ -181,7 +181,13 @@ router.delete('/:id_usuario', async (req, res) => {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
         console.log(`✅ OK DELETE usuario...(${ id })`);
-        return res.status(204).send(); // No Content
+        // return res.status(204).send(); // Habilitar esta línea en caso que No se desee retornar Contenido
+        return res.status(200).json({
+            message: 'Usuario eliminado correctamente',
+            dato: `id_usuario...(${ id })`
+        });
+
+
 
     } catch (err) {
         console.error(`❌ Error 500 Al Borrar usuario...(${ id })`,err);
