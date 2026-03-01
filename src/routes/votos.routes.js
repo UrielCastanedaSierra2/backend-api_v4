@@ -26,7 +26,17 @@ router.post('/', async (req, res) => {
       [id_producto, fecha, id_votante]
     );
 
-    console.log(`✅ OK Voto registrado para el usuario...(${ id_votante }) --> producto (${ id_producto })`);
+    // ===============================
+    // ACTUALIZAMOS EL dato consolidado  en La  tabla de productos
+    // Incrementa en +1 la votación
+
+      await pool.query(
+        'UPDATE productos SET votacion = votacion + 1 WHERE id_producto = ?',
+        [id_producto]
+      )
+
+    console.log(`✅ OK producto id(${id_producto})..Votacion incrementada.`);
+    console.log(`✅ OK Voto registrado para el usuario...(${ id_votante })`);
 
     return res.status(201).json({
       id_voto: result.insertId, // ← Será 0 si la PK no es AUTO_INCREMENT
@@ -37,7 +47,7 @@ router.post('/', async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: 'Error registrando voto' });
+    return res.status(500).json({ error: 'Error SQL registrando voto' });
   }
 });
 
