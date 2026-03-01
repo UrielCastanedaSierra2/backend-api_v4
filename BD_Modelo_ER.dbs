@@ -32,8 +32,6 @@ Un Cliente puede votar  varias veces (controlado por software, según condicione
 			</fk>
 			<fk name="fk_detalle_votos_productos" to_schema="railway" to_table="productos" >
 				<fk_column name="id_producto" pk="id_producto" />
-				<comment><![CDATA[Un voto está relacionado con un único producto
-Un producto puede recibir muchos votos]]></comment>
 			</fk>
 			<options><![CDATA[ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci]]></options>
 		</table>
@@ -52,7 +50,7 @@ Un producto puede recibir muchos votos]]></comment>
 			<options><![CDATA[ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci]]></options>
 		</table>
 	</schema>
-	<diagram_group name="Default" id="fcba476e-d3e9-4e12-aef5-b7a43a2ab5e6" >
+	<diagram_group name="Default" id="31dfdccf-491b-47d2-83e7-f434947da664" >
 		<diagram name="Main Diagram" id="fffaaf63-7cba-4874-8c17-25f81f6e2bc8" joined_routing="y" show_column_type="y" show_relation="columns" >
 			<entity schema="railway" name="cliente_usuario" color="ECEEC1" x="627" y="190" />
 			<entity schema="railway" name="detalle_votos" color="C13939" x="342" y="57" />

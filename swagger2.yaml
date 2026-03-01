@@ -1,0 +1,223 @@
+swagger: '2.0'
+info:
+  title: MiBackEndLoreal_v2
+  description: >-
+    Conector mínimo para pruebas: /health (público), /api/ping (protegido),
+    /api/users (protegido).
+  version: 1.0.0
+host: backend-apiv4-production.up.railway.app
+basePath: /
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /health:
+    get:
+      tags:
+        - Salud
+      summary: Health-check
+      description: 'Público: verifica que el servidor está operativo.'
+      operationId: health
+      x-ms-visibility: important
+      security: []
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              msg:
+                type: string
+            required:
+              - ok
+              - msg
+          examples:
+            application/json:
+              ok: true
+              msg: Servidor operativo
+  /api/ping:
+    get:
+      tags:
+        - Salud
+      summary: Ping protegido
+      description: Protegido por API Key; responde pong.
+      operationId: ping_protegido
+      x-ms-visibility: important
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              msg:
+                type: string
+            required:
+              - ok
+              - msg
+          examples:
+            application/json:
+              ok: true
+              msg: pong
+  /api/users:
+    get:
+      tags:
+        - Usuarios
+      summary: Listar usuarios
+      description: Devuelve la lista de usuarios (cliente_usuario).
+      operationId: users_list
+      x-ms-visibility: important
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+        '401':
+          description: No autorizado
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /api/users/email/{email}:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener usuario por email
+      operationId: users_getByEmail
+      parameters:
+        - in: path
+          name: email
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/User'
+        '404':
+          description: Usuario no encontrado
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /api/productos-db:
+    get:
+      tags:
+        - Productos
+      summary: Listar productos
+      operationId: productos_db_list
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Producto'
+  /api/users/{id_usuario}:
+    put:
+      tags:
+        - Usuarios
+      summary: Actualizar usuario (completo)
+      operationId: users_update
+      parameters:
+        - in: path
+          name: id_usuario
+          required: true
+          type: integer
+          format: int32
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserUpdate'
+      responses:
+        '200':
+          description: Actualizado
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          description: Datos inválidos
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+definitions:
+  User:
+    type: object
+    properties:
+      id_usuario:
+        type: integer
+        format: int32
+      nombres:
+        type: string
+      apellidos:
+        type: string
+      email:
+        type: string
+      telefono:
+        type: string
+    required:
+      - id_usuario
+      - nombres
+      - apellidos
+      - email
+      - telefono
+  UserUpdate:
+    type: object
+    properties:
+      nombres:
+        type: string
+      apellidos:
+        type: string
+      email:
+        type: string
+      telefono:
+        type: string
+    required:
+      - nombres
+      - apellidos
+      - email
+      - telefono
+  Producto:
+    type: object
+    properties:
+      nombre:
+        type: string
+      foto:
+        type: string
+      votacion:
+        type: integer
+        format: int32
+    required:
+      - nombre
+      - foto
+      - votacion
+  ErrorResponse:
+    type: object
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+parameters: {}
+responses: {}
+security:
+  - api_key: []
+tags:
+  - name: Salud
+    description: Verificación de servicio
+  - name: Usuarios
+    description: Operaciones sobre cliente_usuario
+  - name: Productos
+    description: Operaciones sobre cliente_usuario
+securityDefinitions:
+  api_key:
+    type: apiKey
+    in: header
+    name: x-api-key

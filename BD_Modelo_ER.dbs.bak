@@ -53,7 +53,7 @@ Un producto puede recibir muchos votos]]></comment>
 		</table>
 	</schema>
 	<diagram_group name="Default" id="fcba476e-d3e9-4e12-aef5-b7a43a2ab5e6" >
-		<diagram name="Main Diagram" id="fffaaf63-7cba-4874-8c17-25f81f6e2bc8" show_column_type="y" show_relation="columns" >
+		<diagram name="Main Diagram" id="fffaaf63-7cba-4874-8c17-25f81f6e2bc8" joined_routing="y" show_column_type="y" show_relation="columns" >
 			<entity schema="railway" name="cliente_usuario" color="ECEEC1" x="627" y="190" />
 			<entity schema="railway" name="detalle_votos" color="C13939" x="342" y="57" />
 			<entity schema="railway" name="productos" color="3986C1" x="57" y="152" />

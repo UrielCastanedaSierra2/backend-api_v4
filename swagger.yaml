@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  title: "L'Oreal Ranking API (Railway) - Conector Power Apps"
+  title: "MiBackEndLoreal_PowerApps"
   description: "API REST del sistema de ranking de productos L'Oreal. Seguridad global por API Key (header 'x-api-key').\n\nNota: En ambiente de desarrollo (NODE_ENV=development o SKIP_API_KEY=true), el backend puede omitir la validación de API Key. Además, se expone '/api/ping-public' sin seguridad para pruebas de conectividad."
   version: "1.0.1"
 
