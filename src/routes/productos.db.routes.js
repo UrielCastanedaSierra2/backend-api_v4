@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { pool } from '../config/db.js';
 
 const router = Router();
-const API_BASE = import.meta.env.API_URL;
+const API_BASE = process.env.API_URL; 
+//const API_BASE = import.meta.env.API_URL;
 const PATH_FOTOS = '/imagenes/productos'
 
 /* ==========================================================
